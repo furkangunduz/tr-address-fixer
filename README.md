@@ -1,0 +1,52 @@
+# tr-address-normalizer
+
+Türkiye adres verisi için **il** (şehir) ve **ilçe** düzeltir.
+
+## Ne yapar?
+
+- **İl / ilçe normalizasyonu:** Büyük-küçük harf, Türkçe karakter (ı, ğ, ü, ş, ö, ç) ve yazım hatalarını referans veriye göre düzeltir.
+- **İl–ilçe uyumsuzluğu:** Yanlış eşleşmeleri (örn. Ankara + Kadıköy) doğru ile düzeltir (İstanbul + Kadıköy).
+- **Eksik il:** Sadece ilçe verildiğinde, ilçe tek bir ile aitse il’i doldurur.
+- **Tam adresten ilçe:** İl verilip ilçe boşsa, tam adres metninde ilçe adı aranıp doldurulur.
+
+Referans veri: `tr_postal_codes.csv` (il; ilçe; …). Dosya parça parça okunur; tüm CSV belleğe alınmaz.
+
+## Gereksinimler
+
+- **Node.js 16+**
+
+## Kurulum
+
+```bash
+npm install tr-address-normalizer
+```
+
+## Kullanım
+
+```js
+const { correctAddress, correctAddressBatch } = require('tr-address-normalizer');
+
+// Tek adres
+const out = correctAddress({
+  tamAdres: 'Kadıköy Mah. X Sokak No:5',
+  il: 'İstanbul',
+  ilce: 'Kadikoy',
+  postaKodu: '34710',
+});
+// → { il: 'ISTANBUL', ilce: 'KADIKOY', corrected: true, confidence: 'fuzzy', ... }
+
+// Toplu
+const list = correctAddressBatch([
+  { il: 'Anakra', ilce: 'Cankaya' },
+  { ilce: 'Seyhan' },
+]);
+```
+
+## Veri
+
+`tr_postal_codes.csv` proje içinde `src/data/` altında veya `correctAddress(..., dataDir)` ile verilen klasörde aranır. Sütunlar: `il;ilçe;semt_bucak_belde;Mahalle;PK;...` — sadece il ve ilçe kullanılır.
+
+## Scriptler
+
+- `npm run build` — TypeScript derleme
+- `npm test` — Testler (Jest 28, Node 16+ uyumlu)
