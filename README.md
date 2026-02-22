@@ -17,9 +17,22 @@ Referans veri: `tr_postal_codes.csv` (il; ilçe; …). Dosya parça parça okunu
 
 ## Kurulum
 
+Repoyu klonlayıp bağımlılıkları yükleyin:
+
 ```bash
-npm install tr-address-normalizer
+git clone https://github.com/furkangunduz/tr-address-fixer.git
+cd tr-address-fixer
+npm install
+npm run build
 ```
+
+Başka bir projede kullanacaksanız `package.json` içinde dependency olarak ekleyin:
+
+```json
+"tr-address-normalizer": "github:furkangunduz/tr-address-fixer"
+```
+
+Ardından projede `npm install`.
 
 ## Kullanım
 
