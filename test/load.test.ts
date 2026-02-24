@@ -42,12 +42,27 @@ describe('load', () => {
     expect(kadikoy!.region).toBe('KADIKOY');
   });
 
-  test('stateList unique ve stateSet ile uyumlu', () => {
+  test('stateRegionList her elemanın state ve region geçerli', () => {
     const indices = loadIndices(DATA_DIR);
-    const fromList = new Set(indices.stateList.map((s) => s.toLocaleUpperCase('tr-TR')));
-    expect(fromList.size).toBe(indices.stateList.length);
-    for (const key of indices.stateSet) {
-      expect(indices.stateList.some((s) => s.toLocaleUpperCase('tr-TR') === key)).toBe(true);
+    const stateKeys = new Set(indices.stateList.map((s) => s.toLocaleUpperCase('tr-TR')));
+    for (const { state, region } of indices.stateRegionList) {
+      expect(stateKeys.has(state.toLocaleUpperCase('tr-TR'))).toBe(true);
+      const regions = indices.stateToRegions.get(state.toLocaleUpperCase('tr-TR'));
+      expect(regions).toBeDefined();
+      expect(regions!.some((r) => r.toLocaleUpperCase('tr-TR') === region.toLocaleUpperCase('tr-TR'))).toBe(true);
+    }
+  });
+
+  test('stateRegionPairs ve stateRegionList tutarlı', () => {
+    const indices = loadIndices(DATA_DIR);
+    const fromList = new Set(
+      indices.stateRegionList.map(({ state, region }) =>
+        `${state.trim().toLocaleUpperCase('tr-TR')}|${region.trim().toLocaleUpperCase('tr-TR')}`
+      )
+    );
+    expect(indices.stateRegionPairs.size).toBe(fromList.size);
+    for (const key of indices.stateRegionPairs) {
+      expect(fromList.has(key)).toBe(true);
     }
   });
 });

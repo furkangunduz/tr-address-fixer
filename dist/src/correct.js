@@ -14,6 +14,38 @@ function correctAddress(input, dataDir) {
     const postaKodu = input.postaKodu != null ? input.postaKodu : '';
     let il = (input.il != null ? input.il : '').trim();
     let ilce = (input.ilce != null ? input.ilce : '').trim();
+    // Ön normalizasyon: kullanıcı il/ilçe yerine ülke veya tam adres girmiş olabilir
+    // 1) İlçe veya tam adres uzun metin ise "ilçe/İl" pattern'ından il–ilçe çıkar
+    const longTextMinLen = 50;
+    const combinedLong = ilce.length >= longTextMinLen ? ilce : (tamAdres.length >= longTextMinLen ? tamAdres : '');
+    if (combinedLong) {
+        const extracted = (0, match_1.extractIlIlceFromLongText)(indices, combinedLong);
+        if (extracted) {
+            il = extracted.il;
+            ilce = extracted.ilce;
+        }
+    }
+    // 2) İl alanı ülke adı ise (Türkiye vb.): ilçe aslında il olabilir, ilçe tam adresten
+    if ((0, normalize_1.isCountryName)(il)) {
+        const ilceAsStateExact = (0, match_1.findStateExact)(indices, ilce);
+        const ilceAsState = ilceAsStateExact != null ? ilceAsStateExact : (0, match_1.findStateFuzzy)(indices, ilce);
+        if (ilceAsState) {
+            il = ilceAsState;
+            const fromAddr = (0, match_1.resolveIlceFromTamAdres)(indices, tamAdres, ilceAsState);
+            ilce = fromAddr != null ? fromAddr : '';
+        }
+        else {
+            il = '';
+        }
+    }
+    // 3) İl alanı aslında ilçe adı ise (örn. Etimesgut): il+ilçe çöz
+    if (il && (0, match_1.findStateExact)(indices, il) == null && (0, match_1.findStateFuzzy)(indices, il) == null) {
+        const byRegion = (0, match_1.findStateAndRegionByRegionFuzzy)(indices, il);
+        if (byRegion) {
+            il = byRegion.state;
+            ilce = byRegion.region;
+        }
+    }
     let corrected = false;
     let confidence = 'unknown';
     const ilNorm = (0, normalize_1.normalizeForMatch)(il);

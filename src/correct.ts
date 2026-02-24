@@ -1,5 +1,5 @@
 import { getIndices } from './load';
-import { normalizeForMatch } from './normalize';
+import { normalizeForMatch, isCountryName } from './normalize';
 import {
   findStateExact,
   findStateFuzzy,
@@ -8,6 +8,7 @@ import {
   findStateByStateRegionPair,
   findStateAndRegionByRegionFuzzy,
   resolveIlceFromTamAdres,
+  extractIlIlceFromLongText,
 } from './match';
 
 export type Confidence = 'exact' | 'fuzzy' | 'resolved' | 'unknown';
@@ -36,7 +37,46 @@ export function correctAddress(input: AddressInput, dataDir?: string): Corrected
   let il = (input.il != null ? input.il : '').trim();
   let ilce = (input.ilce != null ? input.ilce : '').trim();
 
-  let corrected = false;
+  // Ön normalizasyon: kullanıcı il/ilçe yerine ülke veya tam adres girmiş olabilir
+  let preNormalized = false;
+
+  // 1) İlçe veya tam adres uzun metin ise "ilçe/İl" pattern'ından il–ilçe çıkar
+  const longTextMinLen = 50;
+  const combinedLong = ilce.length >= longTextMinLen ? ilce : (tamAdres.length >= longTextMinLen ? tamAdres : '');
+  if (combinedLong) {
+    const extracted = extractIlIlceFromLongText(indices, combinedLong);
+    if (extracted) {
+      il = extracted.il;
+      ilce = extracted.ilce;
+      preNormalized = true;
+    }
+  }
+
+  // 2) İl alanı ülke adı ise (Türkiye vb.): ilçe aslında il olabilir, ilçe tam adresten
+  if (isCountryName(il)) {
+    const ilceAsStateExact = findStateExact(indices, ilce);
+    const ilceAsState = ilceAsStateExact != null ? ilceAsStateExact : findStateFuzzy(indices, ilce);
+    if (ilceAsState) {
+      il = ilceAsState;
+      const fromAddr = resolveIlceFromTamAdres(indices, tamAdres, ilceAsState);
+      ilce = fromAddr != null ? fromAddr : '';
+      preNormalized = true;
+    } else {
+      il = '';
+    }
+  }
+
+  // 3) İl alanı aslında ilçe adı ise (örn. Etimesgut): il+ilçe çöz
+  if (il && findStateExact(indices, il) == null && findStateFuzzy(indices, il) == null) {
+    const byRegion = findStateAndRegionByRegionFuzzy(indices, il);
+    if (byRegion) {
+      il = byRegion.state;
+      ilce = byRegion.region;
+      preNormalized = true;
+    }
+  }
+
+  let corrected = preNormalized;
   let confidence: Confidence = 'unknown';
 
   const ilNorm = normalizeForMatch(il);
@@ -54,7 +94,7 @@ export function correctAddress(input: AddressInput, dataDir?: string): Corrected
       il: pairState,
       ilce: regionName != null ? regionName : ilce,
       postaKodu,
-      corrected: il !== pairState || ilce !== (regionName != null ? regionName : ilce),
+      corrected: corrected || il !== pairState || ilce !== (regionName != null ? regionName : ilce),
       confidence: 'exact',
     };
   }

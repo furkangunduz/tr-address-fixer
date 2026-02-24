@@ -32,5 +32,10 @@ export declare function findStateAndRegionByRegionFuzzy(indices: AddressIndices,
     state: string;
     region: string;
 } | null;
+/** Uzun metinde "ilçe/İl" veya "ilçe / İl" formatında geçen il–ilçe çiftini bulur; referansla doğrular. */
+export declare function extractIlIlceFromLongText(indices: AddressIndices, text: string): {
+    il: string;
+    ilce: string;
+} | null;
 export declare function resolveIlceFromTamAdres(indices: AddressIndices, tamAdres: string, resolvedIl: string): string | null;
 //# sourceMappingURL=match.d.ts.map

@@ -26,7 +26,52 @@ npm install
 npm run build
 ```
 
-Başka bir projede kullanacaksanız `package.json` içinde dependency olarak ekleyin:
+Başka bir projede kullanacaksanız aşağıdaki yollardan birini kullanın.
+
+**1) Yerel klasör (file:) – önerilen**
+
+Bu repoyu diskte bir yere klonlayın veya kopyalayın, örneğin diğer projenizin yanında:
+
+```
+my-app/
+tr-address-fixer/   ← bu repo
+```
+
+Diğer projenin `package.json` içine dependency ekleyin (yol kendi klasör yapınıza göre değişir):
+
+```json
+"dependencies": {
+  "tr-address-normalizer": "file:../tr-address-fixer"
+}
+```
+
+Ardından diğer projede:
+
+```bash
+cd my-app
+npm install
+```
+
+Önce bu repoda `npm run build` çalıştırdığınızdan emin olun; paket `dist/` çıktısını kullanır.
+
+**2) Geliştirme için npm link (symlink)**
+
+Bu repoda değişiklik yapıp diğer projede anında denemek için:
+
+```bash
+# Bu repo (tr-address-fixer) içinde
+cd /path/to/tr-address-fixer
+npm run build
+npm link
+
+# Kullanan proje içinde
+cd /path/to/my-app
+npm link tr-address-normalizer
+```
+
+Bundan sonra tr-address-fixer’da yaptığınız build’ler my-app’te hemen yansır. Symlink kaldırmak için my-app’te: `npm unlink tr-address-normalizer`.
+
+**3) GitHub’dan (npm paketi yayınlamadan)**
 
 ```json
 "tr-address-normalizer": "github:furkangunduz/tr-address-fixer"

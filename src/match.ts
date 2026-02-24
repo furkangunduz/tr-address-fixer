@@ -143,7 +143,29 @@ export function findStateAndRegionByRegionFuzzy(indices: AddressIndices, inputIl
   return null;
 }
 
-/** Tam adres metninde, verilen ile ait ilçe adı aranır; bulunursa referanstaki ilçe adı döner. */
+/** Uzun metinde "ilçe/İl" veya "ilçe / İl" formatında geçen il–ilçe çiftini bulur; referansla doğrular. */
+export function extractIlIlceFromLongText(
+  indices: AddressIndices,
+  text: string
+): { il: string; ilce: string } | null {
+  const raw = (text != null ? text : '').trim();
+  if (!raw) return null;
+  const re = /([A-Za-zÇçĞğİıÖöŞşÜü\w]+)\s*\/\s*([A-Za-zÇçĞğİıÖöŞşÜü\w]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(raw)) !== null) {
+    const part1 = m[1].trim();
+    const part2 = m[2].trim();
+    const p2Norm = normalizeForMatch(part2);
+    if (!indices.stateSet.has(p2Norm)) continue;
+    const stateName = indices.stateList.find((s) => normalizeForMatch(s) === p2Norm);
+    if (!stateName) continue;
+    const stateKey = normalizeForMatch(stateName);
+    const regionExact = findRegionExactInState(indices, stateKey, part1);
+    const region = regionExact != null ? regionExact : findRegionFuzzyInState(indices, stateKey, part1);
+    if (region) return { il: stateName, ilce: region };
+  }
+  return null;
+}
 const MIN_REGION_LENGTH_IN_ADDRESS = 3;
 
 export function resolveIlceFromTamAdres(indices: AddressIndices, tamAdres: string, resolvedIl: string): string | null {

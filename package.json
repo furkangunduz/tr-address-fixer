@@ -7,7 +7,7 @@
   "engines": { "node": ">=16" },
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --verbose",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

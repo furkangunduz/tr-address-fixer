@@ -282,5 +282,26 @@ describe('correctAddress', () => {
         expect(r.il === '' || r.confidence === 'unknown' || r.il.length > 0).toBe(true);
         expect(r.ilce).toBe('MERKEZ');
     });
+    test('il alanında ülke (Türkiye), ilçe alanında il (İstanbul), ilçe tam adresten (Kadıköy)', () => {
+        const r = (0, correct_1.correctAddress)({
+            il: 'Türkiye',
+            ilce: 'İstanbul',
+            tamAdres: 'Kadıköy bilmem ne mahallesi',
+        }, DATA_DIR);
+        expect(r.il).toBe('ISTANBUL');
+        expect(r.ilce).toBe('KADIKOY');
+        expect(r.corrected).toBe(true);
+    });
+    test('il alanında ilçe (Etimesgut), ilçe alanında tam adres; metinde Etimesgut/ANKARA', () => {
+        const longIlce = 'Şehit Osman Avcı Mahallesi Malazgirt 1071 Caddesi 2650 Sok No:35 Atalay Sitesi B blok daire 2 Etimesgut/ANKARA';
+        const r = (0, correct_1.correctAddress)({
+            il: 'Etimesgut',
+            ilce: longIlce,
+            tamAdres: longIlce,
+        }, DATA_DIR);
+        expect(r.il).toBe('ANKARA');
+        expect(r.ilce).toBe('ETIMESGUT');
+        expect(r.corrected).toBe(true);
+    });
 });
 //# sourceMappingURL=correct.test.js.map

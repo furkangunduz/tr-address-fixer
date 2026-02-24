@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.normalizeForMatch = normalizeForMatch;
 exports.normalizeFuzzyKey = normalizeFuzzyKey;
+exports.isCountryName = isCountryName;
 /**
  * Trim ve Türkçe büyük harf normalizasyonu.
  * Çıktı referans veriyle karşılaştırmada kullanılır; Türkçe karakterler korunur.
@@ -49,5 +50,17 @@ const toFuzzyKey = buildFuzzyReplacer();
 function normalizeFuzzyKey(s) {
     const trimmed = s == null || typeof s !== 'string' ? '' : s.trim();
     return toFuzzyKey(trimmed);
+}
+/** Bilinen ülke adları (normalize edilmiş). İl alanına ülke yazıldığında tespit için. */
+const COUNTRY_NAMES = new Set(['TURKIYE', 'TURKEY', 'TÜRKIYE']);
+/**
+ * Verilen string bilinen bir ülke adı mı (Türkiye, Turkey vb.).
+ * İl alanında ülke yazılmışsa il/ilçe yeniden yorumlamak için kullanılır.
+ */
+function isCountryName(s) {
+    if (s == null || typeof s !== 'string')
+        return false;
+    const key = s.trim().toLocaleUpperCase('tr-TR');
+    return key.length > 0 && COUNTRY_NAMES.has(key);
 }
 //# sourceMappingURL=normalize.js.map

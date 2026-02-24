@@ -48,3 +48,21 @@ export function normalizeFuzzyKey(s: string): string {
   const trimmed = s == null || typeof s !== 'string' ? '' : s.trim();
   return toFuzzyKey(trimmed);
 }
+
+/** Bilinen ülke adları (normalize edilmiş). İl alanına ülke yazıldığında tespit için. */
+const COUNTRY_NAMES = new Set<string>([
+  'TURKIYE',
+  'TURKEY',
+  'TÜRKIYE',
+  'TÜRKİYE', // tr-TR toLocaleUpperCase: i -> İ (U+0130)
+]);
+
+/**
+ * Verilen string bilinen bir ülke adı mı (Türkiye, Turkey vb.).
+ * İl alanında ülke yazılmışsa il/ilçe yeniden yorumlamak için kullanılır.
+ */
+export function isCountryName(s: string): boolean {
+  if (s == null || typeof s !== 'string') return false;
+  const key = s.trim().toLocaleUpperCase('tr-TR');
+  return key.length > 0 && COUNTRY_NAMES.has(key);
+}
